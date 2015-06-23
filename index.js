@@ -7,28 +7,24 @@ class Dropdown extends React.Component {
 
   displayName: 'Dropdown'
 
-  constructor(props) {
-    super(props);
+  constructor() {
+      super();
     this.state = {
-      selected: props.value || { label: 'Select...', value: '' },
+      selected: undefined,
       isOpen: false
     }
-    this.mounted = true;
+  }
+
+  componentWillMount() {
+    this.setState({
+      selected: this.props.value || { label: 'Select...', value: '' }
+    });
   }
 
   componentWillReceiveProps(newProps) {
     if (newProps.value && newProps.value !== this.state.selected) {
       this.setState({selected: newProps.value});
     }
-  }
-
-  componentWillMount() {
-    document.addEventListener("click", this.handleDocumentClick.bind(this), false);
-  }
-
-  componentWillUnmount() {
-    this.mounted = false;
-    document.removeEventListener("click", this.handleDocumentClick.bind(this), false);
   }
 
   handleMouseDown(event) {
@@ -86,14 +82,6 @@ class Dropdown extends React.Component {
     return ops.length ? ops : <div className='Dropdown-noresults'>No opitons found</div>;
   }
 
-  handleDocumentClick(event) {
-    if(this.mounted) {
-      if (!React.findDOMNode(this).contains(event.target)) {
-        this.setState({isOpen:false});
-      }
-    }
-  }
-
   render() {
     let value = (<div className='placeholder'>{this.state.selected.label}</div>);
     let menu = this.state.isOpen ? <div className='Dropdown-menu'>{this.buildMenu()}</div> : null;
@@ -107,7 +95,9 @@ class Dropdown extends React.Component {
       <div className={dropdownClass}>
         <div className='Dropdown-control' onMouseDown={this.handleMouseDown.bind(this)} onTouchEnd={this.handleMouseDown.bind(this)}>
           {value}
-          <span className='Dropdown-arrow' />
+          <div className='Dropdown-arrow-box'>
+              <span className="Dropdown-arrow"/>
+          </div>
         </div>
         {menu}
       </div>
