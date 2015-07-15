@@ -31,6 +31,11 @@ var Dropdown = (function (_React$Component) {
       selected: undefined,
       isOpen: false
     };
+    this.handleDocumentClick = (function (event) {
+      if (!_react2['default'].findDOMNode(this).contains(event.target)) {
+        this.setState({ isOpen: false });
+      }
+    }).bind(this);
   }
 
   _inherits(Dropdown, _React$Component);
@@ -38,9 +43,15 @@ var Dropdown = (function (_React$Component) {
   _createClass(Dropdown, [{
     key: 'componentWillMount',
     value: function componentWillMount() {
+      document.addEventListener('click', this.handleDocumentClick, false);
       this.setState({
         selected: this.props.value || { label: 'Select...', value: '' }
       });
+    }
+  }, {
+    key: 'componentWillUnmount',
+    value: function componentWillUnmount() {
+      document.removeEventListener('click', this.handleDocumentClick, false);
     }
   }, {
     key: 'componentWillReceiveProps',

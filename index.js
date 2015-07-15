@@ -8,17 +8,27 @@ class Dropdown extends React.Component {
   displayName: 'Dropdown'
 
   constructor() {
-      super();
+    super();
     this.state = {
       selected: undefined,
       isOpen: false
     }
+    this.handleDocumentClick = function(event){
+      if (!React.findDOMNode(this).contains(event.target)) {
+        this.setState({isOpen: false});
+      }
+    }.bind(this);
   }
 
   componentWillMount() {
+    document.addEventListener("click", this.handleDocumentClick, false);
     this.setState({
       selected: this.props.value || { label: 'Select...', value: '' }
     });
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("click", this.handleDocumentClick, false);
   }
 
   componentWillReceiveProps(newProps) {
