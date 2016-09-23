@@ -10,61 +10,69 @@ var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_ag
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _reactDom = require('react-dom');
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
 var _classnames = require('classnames');
 
 var _classnames2 = _interopRequireDefault(_classnames);
 
-var Dropdown = (function (_React$Component) {
-  function Dropdown() {
+var Dropdown = (function (_Component) {
+  _inherits(Dropdown, _Component);
+
+  function Dropdown(props) {
     _classCallCheck(this, Dropdown);
 
-    _get(Object.getPrototypeOf(Dropdown.prototype), 'constructor', this).call(this);
+    _get(Object.getPrototypeOf(Dropdown.prototype), 'constructor', this).call(this, props);
     this.state = {
-      selected: undefined,
+      selected: props.value || {
+        label: props.placeholder || 'Select...',
+        value: ''
+      },
       isOpen: false
     };
-    this.handleDocumentClick = (function (event) {
-      if (!_react2['default'].findDOMNode(this).contains(event.target)) {
-        this.setState({ isOpen: false });
-      }
-    }).bind(this);
+    this.mounted = true;
+    this.handleDocumentClick = this.handleDocumentClick.bind(this);
+    this.fireChangeEvent = this.fireChangeEvent.bind(this);
   }
 
-  _inherits(Dropdown, _React$Component);
-
   _createClass(Dropdown, [{
-    key: 'componentWillMount',
-    value: function componentWillMount() {
-      document.addEventListener('click', this.handleDocumentClick, false);
-      this.setState({
-        selected: this.props.value || { label: 'Select...', value: '' }
-      });
-    }
-  }, {
-    key: 'componentWillUnmount',
-    value: function componentWillUnmount() {
-      document.removeEventListener('click', this.handleDocumentClick, false);
-    }
-  }, {
     key: 'componentWillReceiveProps',
     value: function componentWillReceiveProps(newProps) {
       if (newProps.value && newProps.value !== this.state.selected) {
         this.setState({ selected: newProps.value });
+      } else if (!newProps.value && newProps.placeholder) {
+        this.setState({ selected: { label: newProps.placeholder, value: '' } });
       }
+    }
+  }, {
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      document.addEventListener('click', this.handleDocumentClick, false);
+      document.addEventListener('touchend', this.handleDocumentClick, false);
+    }
+  }, {
+    key: 'componentWillUnmount',
+    value: function componentWillUnmount() {
+      this.mounted = false;
+      document.removeEventListener('click', this.handleDocumentClick, false);
+      document.removeEventListener('touchend', this.handleDocumentClick, false);
     }
   }, {
     key: 'handleMouseDown',
     value: function handleMouseDown(event) {
-
-      if (event.type == 'mousedown' && event.button !== 0) return;
+      if (event.type === 'mousedown' && event.button !== 0) return;
       event.stopPropagation();
       event.preventDefault();
 
@@ -74,9 +82,12 @@ var Dropdown = (function (_React$Component) {
     }
   }, {
     key: 'setValue',
-    value: function setValue(option) {
+    value: function setValue(value, label) {
       var newState = {
-        selected: option,
+        selected: {
+          value: value,
+          label: label
+        },
         isOpen: false
       };
       this.fireChangeEvent(newState);
@@ -92,15 +103,21 @@ var Dropdown = (function (_React$Component) {
   }, {
     key: 'renderOption',
     value: function renderOption(option) {
-      var optionClass = (0, _classnames2['default'])({
-        'Dropdown-option': true,
-        'is-selected': option == this.state.selected
-      });
+      var _classNames;
+
+      var optionClass = (0, _classnames2['default'])((_classNames = {}, _defineProperty(_classNames, this.props.baseClassName + '-option', true), _defineProperty(_classNames, 'is-selected', option === this.state.selected), _classNames));
+
+      var value = option.value || option.label || option;
+      var label = option.label || option.value || option;
 
       return _react2['default'].createElement(
         'div',
-        { key: option.value, className: optionClass, onMouseDown: this.setValue.bind(this, option), onClick: this.setValue.bind(this, option) },
-        option.label
+        {
+          key: value,
+          className: optionClass,
+          onMouseDown: this.setValue.bind(this, value, label),
+          onClick: this.setValue.bind(this, value, label) },
+        label
       );
     }
   }, {
@@ -108,11 +125,15 @@ var Dropdown = (function (_React$Component) {
     value: function buildMenu() {
       var _this = this;
 
-      var ops = this.props.options.map(function (option) {
-        if (option.type == 'group') {
+      var _props = this.props;
+      var options = _props.options;
+      var baseClassName = _props.baseClassName;
+
+      var ops = options.map(function (option) {
+        if (option.type === 'group') {
           var groupTitle = _react2['default'].createElement(
             'div',
-            { className: 'title' },
+            { className: baseClassName + '-title' },
             option.name
           );
           var _options = option.items.map(function (item) {
@@ -121,7 +142,7 @@ var Dropdown = (function (_React$Component) {
 
           return _react2['default'].createElement(
             'div',
-            { className: 'group', key: option.name },
+            { className: baseClassName + '-group', key: option.name },
             groupTitle,
             _options
           );
@@ -132,40 +153,51 @@ var Dropdown = (function (_React$Component) {
 
       return ops.length ? ops : _react2['default'].createElement(
         'div',
-        { className: 'Dropdown-noresults' },
-        'No opitons found'
+        { className: baseClassName + '-noresults' },
+        'No options found'
       );
+    }
+  }, {
+    key: 'handleDocumentClick',
+    value: function handleDocumentClick(event) {
+      if (this.mounted) {
+        if (!_reactDom2['default'].findDOMNode(this).contains(event.target)) {
+          this.setState({ isOpen: false });
+        }
+      }
     }
   }, {
     key: 'render',
     value: function render() {
+      var _classNames2;
+
+      var baseClassName = this.props.baseClassName;
+
+      var placeHolderValue = typeof this.state.selected === 'string' ? this.state.selected : this.state.selected.label;
       var value = _react2['default'].createElement(
         'div',
-        { className: 'placeholder' },
-        this.state.selected.label
+        { className: baseClassName + '-placeholder' },
+        placeHolderValue
       );
       var menu = this.state.isOpen ? _react2['default'].createElement(
         'div',
-        { className: 'Dropdown-menu' },
+        { className: baseClassName + '-menu' },
         this.buildMenu()
       ) : null;
 
-      var dropdownClass = (0, _classnames2['default'])({
-        'Dropdown': true,
-        'is-open': this.state.isOpen
-      });
+      var dropdownClass = (0, _classnames2['default'])((_classNames2 = {}, _defineProperty(_classNames2, baseClassName + '-root', true), _defineProperty(_classNames2, 'is-open', this.state.isOpen), _classNames2));
 
       return _react2['default'].createElement(
         'div',
         { className: dropdownClass },
         _react2['default'].createElement(
           'div',
-          { className: 'Dropdown-control', onMouseDown: this.handleMouseDown.bind(this), onTouchEnd: this.handleMouseDown.bind(this) },
+          { className: baseClassName + '-control', onMouseDown: this.handleMouseDown.bind(this), onTouchEnd: this.handleMouseDown.bind(this) },
           value,
           _react2['default'].createElement(
             'div',
-            { className: 'Dropdown-arrow-box' },
-            _react2['default'].createElement('span', { className: 'Dropdown-arrow' })
+            { className: baseClassName + '-arrow-box' },
+            _react2['default'].createElement('span', { className: baseClassName + '-arrow' })
           )
         ),
         menu
@@ -174,8 +206,8 @@ var Dropdown = (function (_React$Component) {
   }]);
 
   return Dropdown;
-})(_react2['default'].Component);
+})(_react.Component);
 
+Dropdown.defaultProps = { baseClassName: 'Dropdown' };
 exports['default'] = Dropdown;
 module.exports = exports['default'];
-

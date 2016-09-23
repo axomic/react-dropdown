@@ -1,119 +1,143 @@
-'use strict';
+import React, { Component } from 'react'
+import ReactDOM from 'react-dom'
+import classNames from 'classnames'
 
-import React from 'react';
-import classNames from 'classnames';
-
-class Dropdown extends React.Component {
-
-  displayName: 'Dropdown'
-
-  constructor() {
-    super();
+class Dropdown extends Component {
+  constructor (props) {
+    super(props)
     this.state = {
-      selected: undefined,
+      selected: props.value || {
+        label: props.placeholder || 'Select...',
+        value: ''
+      },
       isOpen: false
     }
-    this.handleDocumentClick = function(event){
-      if (!React.findDOMNode(this).contains(event.target)) {
-        this.setState({isOpen: false});
-      }
-    }.bind(this);
+    this.mounted = true
+    this.handleDocumentClick = this.handleDocumentClick.bind(this)
+    this.fireChangeEvent = this.fireChangeEvent.bind(this)
   }
 
-  componentWillMount() {
-    document.addEventListener("click", this.handleDocumentClick, false);
-    this.setState({
-      selected: this.props.value || { label: 'Select...', value: '' }
-    });
-  }
-
-  componentWillUnmount() {
-    document.removeEventListener("click", this.handleDocumentClick, false);
-  }
-
-  componentWillReceiveProps(newProps) {
+  componentWillReceiveProps (newProps) {
     if (newProps.value && newProps.value !== this.state.selected) {
-      this.setState({selected: newProps.value});
+      this.setState({selected: newProps.value})
+    } else if (!newProps.value && newProps.placeholder) {
+      this.setState({selected: { label: newProps.placeholder, value: '' }})
     }
   }
 
-  handleMouseDown(event) {
+  componentDidMount () {
+    document.addEventListener('click', this.handleDocumentClick, false)
+    document.addEventListener('touchend', this.handleDocumentClick, false)
+  }
 
-    if (event.type == 'mousedown' && event.button !== 0) return;
-    event.stopPropagation();
-    event.preventDefault();
+  componentWillUnmount () {
+    this.mounted = false
+    document.removeEventListener('click', this.handleDocumentClick, false)
+    document.removeEventListener('touchend', this.handleDocumentClick, false)
+  }
+
+  handleMouseDown (event) {
+    if (event.type === 'mousedown' && event.button !== 0) return
+    event.stopPropagation()
+    event.preventDefault()
 
     this.setState({
       isOpen: !this.state.isOpen
-    });
+    })
   }
 
-  setValue(option) {
+  setValue (value, label) {
     let newState = {
-      selected: option,
+      selected: {
+        value,
+        label
+      },
       isOpen: false
     }
-    this.fireChangeEvent(newState);
-    this.setState(newState);
+    this.fireChangeEvent(newState)
+    this.setState(newState)
   }
 
-  fireChangeEvent(newState) {
+  fireChangeEvent (newState) {
     if (newState.selected !== this.state.selected && this.props.onChange) {
-      this.props.onChange(newState.selected);
+      this.props.onChange(newState.selected)
     }
   }
 
   renderOption (option) {
     let optionClass = classNames({
-      'Dropdown-option': true,
-      'is-selected': option == this.state.selected
-    });
+      [`${this.props.baseClassName}-option`]: true,
+      'is-selected': option === this.state.selected
+    })
 
-    return <div key={option.value} className={optionClass} onMouseDown={this.setValue.bind(this, option)} onClick={this.setValue.bind(this, option)}>{option.label}</div>
+    let value = option.value || option.label || option
+    let label = option.label || option.value || option
+
+    return (
+      <div
+        key={value}
+        className={optionClass}
+        onMouseDown={this.setValue.bind(this, value, label)}
+        onClick={this.setValue.bind(this, value, label)}>
+        {label}
+      </div>
+    )
   }
 
-  buildMenu() {
-    let ops = this.props.options.map((option) => {
-      if (option.type == 'group') {
-        let groupTitle = (<div className='title'>{option.name}</div>);
-        let _options = option.items.map((item) => this.renderOption(item));
+  buildMenu () {
+    let { options, baseClassName } = this.props
+    let ops = options.map((option) => {
+      if (option.type === 'group') {
+        let groupTitle = (<div className={`${baseClassName}-title`}>{option.name}</div>)
+        let _options = option.items.map((item) => this.renderOption(item))
 
         return (
-          <div className='group' key={option.name}>
+          <div className={`${baseClassName}-group`} key={option.name}>
             {groupTitle}
             {_options}
           </div>
-        );
+        )
       } else {
-        return this.renderOption(option);
+        return this.renderOption(option)
       }
     })
 
-    return ops.length ? ops : <div className='Dropdown-noresults'>No opitons found</div>;
+    return ops.length ? ops : <div className={`${baseClassName}-noresults`}>No options found</div>
   }
 
-  render() {
-    let value = (<div className='placeholder'>{this.state.selected.label}</div>);
-    let menu = this.state.isOpen ? <div className='Dropdown-menu'>{this.buildMenu()}</div> : null;
+  handleDocumentClick (event) {
+    if (this.mounted) {
+      if (!ReactDOM.findDOMNode(this).contains(event.target)) {
+        this.setState({ isOpen: false })
+      }
+    }
+  }
+
+  render () {
+    const { baseClassName } = this.props
+    const placeHolderValue = typeof this.state.selected === 'string' ? this.state.selected : this.state.selected.label
+    let value = (<div className={`${baseClassName}-placeholder`}>{placeHolderValue}</div>)
+    let menu = this.state.isOpen ? <div className={`${baseClassName}-menu`}>{this.buildMenu()}</div> : null
 
     let dropdownClass = classNames({
-      'Dropdown': true,
+      [`${baseClassName}-root`]: true,
       'is-open': this.state.isOpen
-    });
+    })
 
     return (
       <div className={dropdownClass}>
-        <div className='Dropdown-control' onMouseDown={this.handleMouseDown.bind(this)} onTouchEnd={this.handleMouseDown.bind(this)}>
+        <div className={`${baseClassName}-control`} onMouseDown={this.handleMouseDown.bind(this)} onTouchEnd={this.handleMouseDown.bind(this)}>
           {value}
-          <div className='Dropdown-arrow-box'>
-              <span className="Dropdown-arrow"/>
+          <div className={`${baseClassName}-arrow-box`}>
+              <span className={`${baseClassName}-arrow`} />
           </div>
         </div>
         {menu}
       </div>
-    );
+    )
   }
 
 }
 
-export default Dropdown;
+Dropdown.defaultProps = { baseClassName: 'Dropdown' }
+export default Dropdown
