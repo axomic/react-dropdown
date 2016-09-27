@@ -2,14 +2,14 @@
   "name": "react-dropdown",
   "version": "1.1.0",
   "description": "React dropdown component",
-  "main": "dist/index.js",
+  "main": "dist/react-dropdown.js",
   "style": "style.css",
   "repository": {
     "type": "git",
     "url": "git://github.com/fraserxu/react-dropdown.git"
   },
   "files": [
-    "dist/index.js",
+    "dist/react-dropdown.js",
     "style.css"
   ],
   "keywords": [
@@ -57,7 +57,7 @@
     "watchify": "^3.7.0"
   },
   "scripts": {
-    "build": "babel -d dist index.js",
+    "build": "babel -d dist react-dropdown.js",
     "test": "standard index.js",
     "watch": "watchify example/main.js -p browserify-hmr -o example/bundle.js -dv",
     "start": "ecstatic -p 8080 example & npm run watch",
