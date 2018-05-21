@@ -183,7 +183,7 @@ var Dropdown = function (_Component) {
 
       var dropdownClasses = [baseClassName + '-root'];
       if (this.state.isOpen) {
-        dropdownClass.push('is-open');
+        dropdownClasses.push('is-open');
       }
       var dropdownClass = dropdownClasses.join(' ');
 
