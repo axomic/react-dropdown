@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
-import classNames from 'classnames'
 
 class Dropdown extends Component {
   constructor (props) {
@@ -119,10 +118,15 @@ class Dropdown extends Component {
     let value = (<div className={`${baseClassName}-placeholder`}>{placeHolderValue}</div>)
     let menu = this.state.isOpen ? <div className={`${baseClassName}-menu`}>{this.buildMenu()}</div> : null
 
-    let dropdownClass = classNames({
-      [`${baseClassName}-root`]: true,
-      'is-open': this.state.isOpen
-    })
+    // let dropdownClass = classNames({
+    //   [`${baseClassName}-root`]: true,
+    //   'is-open': this.state.isOpen
+    // })
+    let dropdownClasses = [`${baseClassName}-root`];
+    if(this.state.isOpen) {
+      dropdownClass.push('is-open');
+    }
+    let dropdownClass = dropdownClasses.join(' ');
 
     return (
       <div className={dropdownClass}>
