@@ -101,7 +101,7 @@ var Dropdown = function (_Component) {
     value: function renderOption(option) {
       var optionClasses = [this.props.baseClassName + '-option'];
       if (option === this.state.selected) {
-        dropdownClass.push('is-selected');
+        optionClasses.push('is-selected');
       }
       var optionClass = optionClasses.join(' ');
 

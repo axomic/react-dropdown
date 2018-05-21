@@ -70,7 +70,7 @@ class Dropdown extends Component {
     // })
     let optionClasses = [`${this.props.baseClassName}-option`];
     if(option === this.state.selected) {
-      dropdownClass.push('is-selected');
+      optionClasses.push('is-selected');
     }
     let optionClass = optionClasses.join(' ');
 
